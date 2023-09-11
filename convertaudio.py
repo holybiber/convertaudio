@@ -39,6 +39,9 @@ def convert_to_mp3(temp_file: str, output_file) -> bool:
 
 def convert_audio(input_file: str, output_file: str):
     #print(f"TODO: Converting {input_file} to {output_file}")
+    if input_file.endswith('.wav'):
+        convert_to_mp3(input_file, output_file)
+        return
     audio_type = subprocess.run(['file', '-b', input_file], capture_output=True, text=True).stdout
     temp_file = output_file + ".temp.wav"
     if audio_type.startswith('Ogg data, Opus audio'):
@@ -55,7 +58,7 @@ def convert_audio(input_file: str, output_file: str):
             print(f"Couldn't decode Ogg Vorbis audio of {input_file}: {result.stdout}{result.stderr}")
     elif audio_type.startswith('ISO Media, MPEG v4 system, 3GPP') or audio_type.startswith('MPEG ADTS, AAC') or \
          audio_type.startswith('ISO Media, Apple iTunes ALAC/AAC-LC') or \
-         audio_type.startswith('ISO Media, MP4 v2'):    # video file but extracting audio works the same
+         audio_type.startswith('ISO Media, MP4'):    # video file but extracting audio works the same
         # -y to overwrite existing files (otherwise he's stopping and expects y/n)
         result = subprocess.run(['ffmpeg', '-y', '-i', input_file, temp_file], capture_output=True, text=True)
         if result.returncode == 0:
@@ -82,7 +85,7 @@ if __name__ == '__main__':
         for entry in item:
             if not entry.name.startswith('.') and entry.is_file():
                 base_name, extension = os.path.splitext(entry.name)
-                if extension in ['.ogg', '.m4a', '.opus', '.aac', '.mp4']:
+                if extension in ['.ogg', '.m4a', '.opus', '.aac', '.mp4', '.wav']:
                     convert_audio(entry.path, os.path.join(mp3_folder, base_name + ".mp3"))
                 else:
                     print(f"Skipping {entry.name}")
